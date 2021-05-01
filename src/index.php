@@ -15,9 +15,8 @@ if (isset($_POST['logout'])) {
 <!DOCTYPE HTML>
 <html lang="sk">
 <head>
-    <title>Skuska</title>
+    <title>Učiteľ</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 Hlavna stranka ucitela

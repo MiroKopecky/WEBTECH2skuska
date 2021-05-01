@@ -48,15 +48,18 @@ else if (isset($_POST['student'])) {
             try {
                 $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $sql = "INSERT INTO students (name, surname, AISid) VALUES ('$name','$surname','$ais_id')";
-                $conn->exec($sql);
+                $stmt = $conn->prepare("INSERT INTO students (name, surname, AISid) VALUES (:name, :surname, :ais_id)");
+                $stmt->bindParam(':name',$name);
+                $stmt->bindParam(':surname',$surname);
+                $stmt->bindParam(':ais_id',$ais_id);
+                $stmt->execute();
                 $id = $conn->lastInsertId();
                 $_SESSION['id'] = $id;
                 $_SESSION['student_check'] = true;
                 header("Location: ./student");
             }
             catch (PDOException $exception){
-                echo "Konto s týmto AIS ID už existuje!";
+                echo "Tento študent už píše test!";
             }
         }
     }
@@ -70,9 +73,8 @@ else if (isset($_POST['student'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Prihlásenie</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 

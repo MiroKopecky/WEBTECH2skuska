@@ -38,8 +38,13 @@ if (isset($_POST['name']) && ($_POST['surname']) && ($_POST['email']) && ($_POST
             try {
                 $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $sql = "INSERT INTO teachers (name, surname, email, password) VALUES ('$name','$surname','$email','$password')";
-                $conn->exec($sql);
+
+                $stmt = $conn->prepare("INSERT INTO teachers (name, surname, email, password) VALUES (:name, :surname, :email, :password)");
+                $stmt->bindParam(':name',$name);
+                $stmt->bindParam(':surname',$surname);
+                $stmt->bindParam(':email',$email);
+                $stmt->bindParam(':password',$password);
+                $stmt->execute();
                 $id = $conn->lastInsertId();
                 $_SESSION['id'] = $id;
                 header("Location: login.php");
@@ -61,7 +66,6 @@ else {
 <head>
     <title>Registrácia</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
