@@ -22,7 +22,7 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
     $mainArray[$x] = $subArray;
   }
   $a = json_encode($mainArray);
-  var_dump($a);
+
 
   $sql = "INSERT INTO json (data) VALUES (?)";
   $stm = $conn->prepare($sql);
