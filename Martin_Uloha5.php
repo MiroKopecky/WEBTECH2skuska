@@ -37,8 +37,9 @@ $obj = json_decode($json);
         echo json_encode($obj);
         ?>;
 
+    var type5 = json.otazky.find(t=>t.type ==='typ5').question;
 
-    mathField.latex(json.otazky[4].question); //na tvrdo najebane na poslednu otazku
+    mathField.latex(type5);
 
 </script>
 
