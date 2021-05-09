@@ -27,7 +27,6 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
     $sql = "INSERT INTO json (data) VALUES (?)";
     $stm = $conn->prepare($sql);
     $stm->execute([$a]);
-    var_dump(json_decode($a,true));
 
 }
 ?>
