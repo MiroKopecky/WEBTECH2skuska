@@ -26,7 +26,7 @@
   }*/
 
 
- $json = file_get_contents("questions.json");
+ $json = file_get_contents("https://wt113.fei.stuba.sk/skuskove/api/giveTest.php?codeTest=abc");
 
  $obj = json_decode($json);
 
@@ -35,14 +35,15 @@
  $questions = $data['otazky'];
 
   
-  /*function createMathdivs($otazky){
+  function createMathdivs($otazky){
     $divs = '';
     foreach($otazky as $otazka){
       if($otazka['type'] == "typ5"){
-        $divs.= '<div id="'.$otazka["questionID"].'"></div>';
+        $divs.= '<div class="column" id="'.$otazka["questionID"].'"></div>';
     }
     echo $divs;
-  }*/
+  }
+  }
 
 
   function generateMathScript($otazky){
@@ -52,6 +53,9 @@
 
       if($otazka['type'] == 'typ5'){
         $data = $otazka["question"];
+        /*$oneSlash = '/\/';
+        $tripleSlah = '\\';
+        $data = preg_replace($oneSlash,$tripleSlah,$data);*/
         $script.= 'var preview'.$otazka["questionID"]. '= document.getElementById("'.$otazka["questionID"].'");
         var mathField'.$otazka["questionID"] .'=MQ.MathField(preview'.$otazka["questionID"].');
         mathField'.$otazka["questionID"] .'.latex("'.$data.'");';
@@ -76,8 +80,9 @@
   function finals($questions){
     $html = '';
     foreach($questions as $question){ 
+      
       if($question['type'] == 'typ3'){
-        $html.= '<p>Priraďte hodnoty v pravom stĺpci ku hodnotám v ľavom.</p><br>';
+        $html.= '<p>Pridate hodnoty v pravom stlci ku hodnotam v lavom</p>';
         $id = $question['questionID'];
         $randomShuffle = $question['question']['rightCol'];
         shuffle($randomShuffle);
@@ -128,6 +133,10 @@
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <style>
+     p{
+       float: left;
+       
+     }
     .column {
       width: 25%;
       min-height: 20px;
@@ -159,7 +168,7 @@
 
   <script>
     <?php
-    //generateScript($questions);
+    generateScript($questions);
     ?>
   </script>
 </head>
@@ -169,15 +178,17 @@
 
 <body>
 
-<div id="1200"></div>
+<?php
+    finals($questions);
+    createMathdivs($questions);
+
+?>
   
 
 <script>
-  <?php
-    //finals($questions);
-    generateMathScript($questions);
-
-  ?>
+    <?php
+      generateMathScript($questions);
+    ?>
 </script>
 
 <script>
@@ -238,6 +249,16 @@
       console.log(okkk);
     }
  })
+
+</script>
+
+<button onclick="results()">dd</button>
+
+</body>
+
+
+
+
 
 </script>
 
