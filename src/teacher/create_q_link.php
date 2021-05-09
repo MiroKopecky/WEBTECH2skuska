@@ -24,13 +24,12 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
     $mainArray[$x] = $subArray;
   }
   $a = json_encode($mainArray);
-  var_dump($a);
+
 
   $otazka="Priraďte hodnoty v pravom stĺpci ku hodnotám v ľavom.";
   $sql = "INSERT INTO testQuestions (question,answer,test_id,type) VALUES (?,?,?,?)";
   $stm = $conn->prepare($sql);
   $stm->execute([$otazka, $a,1,"pairing"]);
-  var_dump(json_decode($a,true));
 
 }
 ?>
