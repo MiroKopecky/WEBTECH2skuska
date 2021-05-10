@@ -41,8 +41,8 @@
       if($otazka['type'] == "typ5"){
         $divs.= '<div class="column" id="'.$otazka["questionID"].'"></div>';
     }
-    echo $divs;
   }
+  echo $divs;
   }
 
 
@@ -52,17 +52,18 @@
     foreach($otazky as $otazka){
 
       if($otazka['type'] == 'typ5'){
-        $data = $otazka["question"];
-        /*$oneSlash = '/\/';
-        $tripleSlah = '\\';
-        $data = preg_replace($oneSlash,$tripleSlah,$data);*/
+        $data =$otazka["question"];
+    
+        //$str = $otazka["question"];
+        /*$pattern = "/\\\\/";
+        $data = preg_replace($pattern, "\\\\\", $str);*/
+
         $script.= 'var preview'.$otazka["questionID"]. '= document.getElementById("'.$otazka["questionID"].'");
         var mathField'.$otazka["questionID"] .'=MQ.MathField(preview'.$otazka["questionID"].');
-        mathField'.$otazka["questionID"] .'.latex("'.$data.'");';
-        echo $script;
+        mathField'.$otazka["questionID"] .'.latex(\''.$data.'\');';
       }
     }
-
+    echo $script;
   }
 
   function generateScript($questions){
@@ -179,9 +180,8 @@
 <body>
 
 <?php
-    finals($questions);
+    //finals($questions);
     createMathdivs($questions);
-
 ?>
   
 
@@ -255,6 +255,9 @@
 <button onclick="results()">dd</button>
 
 </body>
+
+
+
 
 
 
