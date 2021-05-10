@@ -25,6 +25,16 @@
     echo $script;
   }
 
+  function makeOpenQ($questions){
+    $html = '';
+    foreach($questions as $question){
+      if($question['type'] == 'typ1'){
+        $html .= '<div class="openQ"><p><b>Otázka:</b>'.$question['question'].'</p><label for="answers'.$question['questionID'].'">Odpoveď:</label><input type="text" name=answers'.$question['questionID'].'></div>';
+      }
+    }
+    echo $html;
+  }
+
   function makePairingQ($questions){
     $html = '';
     foreach($questions as $question){ 
@@ -122,6 +132,11 @@ function makePainting($questions){
   <title>Test Template</title>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <style>
+
+    .openQ input {
+      margin: 5px;
+    }
+
      .pairingQ{
        float: left;
      }
@@ -204,6 +219,11 @@ function makePainting($questions){
 
 
 <body>
+<?php
+    makeOpenQ($questions);
+?>
+
+
 <?php
     makePairingQ($questions);
 ?>
