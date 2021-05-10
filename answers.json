@@ -13,23 +13,16 @@
        {
           "type":"typ3",
           "questionID":1874,
-          "answer":{
-             "leftCol":[
-                "Pes",
-                "Macka",
-                "Kon"
-             ],
-             "rightCol":[
+          "answer":[
                 "Horse",
                 "Dog",
                 "Cat"
              ]
-          }
        },
        {
           "type":"typ4",
           "questionID":1812,
-          "answer":"base64 alebo server/..."
+          "answer":"nazovSuboru.png"
        },
        {
           "type":"typ5",
