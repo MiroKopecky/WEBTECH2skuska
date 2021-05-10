@@ -1,28 +1,44 @@
 <?php
+
+session_start();
+
+if ($_SESSION['teacher_check'] == false) {
+    header("Location: ../login.php");
+}
+if (isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: ../login.php");
+}
+
 require_once "../config.php";
 
 if (isset($_POST['question'])) {
     $question = $_POST['question'];
     $answerTrue = $_POST['answerTrue'];
-    $answers = $_POST["answer"];
-    $test_id = 1;
+    $answerFalse = $_POST["answer"];
+    $test_id = $_SESSION['test_id'];
     $type = "select";
-    $false_answer = [];
+    $points = $_POST['points'];
+    $answers = [];
+    array_push($answers,$answerTrue);
 
-    foreach ($answers as $answer) {
-        array_push($false_answer,$answer);
+    foreach ($answerFalse as $answer) {
+        array_push($answers,$answer);
     }
+
+    $a = json_encode($answers);
 
     try {
         $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $stmt = $conn->prepare("INSERT INTO testQuestions (question, answer, false_answer, test_id, type) VALUES (:question, :answer, :false_answer, :test_id, :type)");
+        $stmt = $conn->prepare("INSERT INTO testQuestions (question, answer, test_id, type, points) VALUES (:question, :answer, :test_id, :type, :points)");
         $stmt->bindParam(':question',$question);
-        $stmt->bindParam(':answer',$answerTrue);
-        $stmt->bindParam(':false_answer',$false_answer);
+        $stmt->bindParam(':answer',$a);
         $stmt->bindParam(':test_id',$test_id);
         $stmt->bindParam(':type',$type);
+        $stmt->bindParam(':points',$points);
         $stmt->execute();
+        header("Location: create_test.php");
     }
     catch (PDOException $exception){
         echo "Error." . $exception;
@@ -41,6 +57,8 @@ if (isset($_POST['question'])) {
 <form action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
     <label for="question">Zadaj otázku: </label><br>
     <input type="text" size="50" name="question" id="question" required>
+    <label for="points">Počet bodov: </label>
+    <input type="number" name="points" id="points" required>
     <br>
     <div class="answers">
         <div>

@@ -1,3 +1,21 @@
+<?php
+require_once "../config.php";
+
+session_start();
+
+if ($_SESSION['teacher_check'] == false) {
+    header("Location: ../login.php");
+}
+if (isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: ../login.php");
+}
+
+$test_id = $_SESSION['test_id'];
+$_SESSION['test_id'] = $test_id;
+var_dump($test_id);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,45 +33,53 @@
 
 <body>
 
-    Otazka: <input type="text" id="question" name="question">
+<p id="note"></p>
 
-    Priklad: <span id="answer">x=</span><br>
+Otazka: <input type="text" id="question" name="question">
 
-    <button id="send">Odoslat</button><br><br>
+Priklad: <span id="answer">x=</span><br>
 
-
-    <script>
-
-
-        var MQ = MathQuill.getInterface(2);
-
-        var answerSpan = document.getElementById('answer');
-
-        var enteredMath = "";
-
-        var firstMathField = MQ.MathField(answerSpan, {
-            handlers: {
-                edit: function() {
-                    enteredMath = firstMathField.latex();
-                    //console.log(enteredMath);
-                    }
-                }
-        });
+<button id="send">Odoslat</button><br><br>
 
 
-        document.getElementById("send").addEventListener("click", function (){
-           console.log(enteredMath);
-
-           const xhr = new XMLHttpRequest();
-
-           xhr.open("POST", "sendToDB.php");
-           xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-           xhr.send('question='+ document.getElementById('question').value + '&answer=' + enteredMath);
-
-        });
+<script>
 
 
-    </script>
+    var MQ = MathQuill.getInterface(2);
+
+    var answerSpan = document.getElementById('answer');
+
+    var enteredMath = "";
+
+    var firstMathField = MQ.MathField(answerSpan, {
+        handlers: {
+            edit: function() {
+                enteredMath = firstMathField.latex();
+                //console.log(enteredMath);
+            }
+        }
+    });
+
+
+    document.getElementById("send").addEventListener("click", function (){
+        let question = document.getElementById('question').value;
+        if (question == "") {
+            document.getElementById("note").innerHTML = "Otázka nemôže byť prázdna!";
+            return;
+        }
+        console.log(enteredMath);
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.open("POST", "send_q_math_to_db.php");
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send('question='+ document.getElementById('question').value + '&answer=' + enteredMath);
+
+        window.location.assign('create_test.php')
+    });
+
+
+</script>
 </body>
 
 </html>

@@ -18,26 +18,24 @@ if (isset($_POST['ucitel'])) {
         echo "Error:" . $exception->getMessage();
     }
 
-    if (isset($_POST['email']) && ($_POST['password'])) {
-        if ($_POST['email'] != "" && $_POST['password'] != "") {
-            $email = $_POST['email'];
-            $password = sha1($_POST['password']);
-            $_SESSION['email'] = $email;
-            foreach ($teachers as $teacher) {
-                if ($email == $teacher["email"]) {
-                    if ($password == $teacher["password"]) {
-                        $_SESSION['id'] = $teacher['id'];
-                        $_SESSION['teacher_check'] = true;
-                        header("Location: index.php");
-                    }
+    if ($_POST['email'] != "" && $_POST['password'] != "") {
+        $email = $_POST['email'];
+        $password = sha1($_POST['password']);
+        $_SESSION['email'] = $email;
+        foreach ($teachers as $teacher) {
+            if ($email == $teacher["email"]) {
+                if ($password == $teacher["password"]) {
+                    $_SESSION['id'] = $teacher['id'];
+                    $_SESSION['teacher_check'] = true;
+                    header("Location: index.php");
                 }
             }
         }
-        echo "<p class='note'>Nesprávny email alebo heslo!</p>";
     }
+    echo "<p class='note'>Nesprávny email alebo heslo!</p>";
 }
 else if (isset($_POST['student'])) {
-    if ($_POST['name'] != "" && $_POST['surname'] != "" && $_POST['ais_id'] != null) {
+    if ($_POST['test'] != "" && $_POST['name'] != "" && $_POST['surname'] != "" && $_POST['ais_id'] != null) {
         $name = $_POST['name'];
         $surname = $_POST['surname'];
         $ais_id = $_POST['ais_id'];
@@ -45,22 +43,77 @@ else if (isset($_POST['student'])) {
             echo "<p class='note'>Neplatné AIS ID!</p>";
         }
         else {
+
+            $tests = null;
             try {
                 $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $stmt = $conn->prepare("INSERT INTO students (name, surname, AISid) VALUES (:name, :surname, :ais_id)");
-                $stmt->bindParam(':name',$name);
-                $stmt->bindParam(':surname',$surname);
-                $stmt->bindParam(':ais_id',$ais_id);
+                $stmt = $conn->prepare("SELECT * from testParticipants WHERE aisid='$ais_id'");
                 $stmt->execute();
-                $id = $conn->lastInsertId();
-                $_SESSION['id'] = $id;
-                $_SESSION['student_check'] = true;
-                header("Location: ./student");
+                $tests = $stmt->fetchAll();
             }
             catch (PDOException $exception){
-                echo "Tento študent už píše test!";
+                echo "Error:" . $exception->getMessage();
             }
+
+            foreach ($tests as $test) {
+                if ($test[4] == 'solving') {
+                    echo "Tento študent už píše test!";
+                    exit();
+                }
+            }
+
+            $test_code = $_POST['test'];
+            $tests = null;
+            try {
+                $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $stmt = $conn->prepare("SELECT * from test WHERE code='$test_code'");
+                $stmt->execute();
+                $tests = $stmt->fetchAll();
+            }
+            catch (PDOException $exception){
+                echo "Error:" . $exception->getMessage();
+            }
+
+            if ($tests != null) {
+                $test_id = $tests[0][0];
+                $status = "solving";
+
+                try {
+                    $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $stmt = $conn->prepare("INSERT INTO students (name, surname, AISid) VALUES (:name, :surname, :ais_id)");
+                    $stmt->bindParam(':name',$name);
+                    $stmt->bindParam(':surname',$surname);
+                    $stmt->bindParam(':ais_id',$ais_id);
+                    $stmt->execute();
+                    $id = $conn->lastInsertId();
+                    $_SESSION['id'] = $id;
+                    $_SESSION['student_check'] = true;
+                }
+                catch (PDOException $exception){
+                    echo "Tento študent už píše test!";
+                    exit();
+                }
+
+                try {
+                    $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status) VALUES (:test_id, :student_id, :aisid, :status)");
+                    $stmt->bindParam(':test_id',$test_id);
+                    $stmt->bindParam(':student_id',$_SESSION['id']);
+                    $stmt->bindParam(':aisid',$ais_id);
+                    $stmt->bindParam(':status',$status);
+                    $stmt->execute();
+                    $_SESSION['test_id'] = $test_id;
+                    header("Location: ./student");
+                }
+                catch (PDOException $exception){
+                    echo "Chyba: " . $exception;
+                }
+            }
+
         }
     }
     else {
@@ -88,10 +141,10 @@ else if (isset($_POST['student'])) {
     <form action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
 
         <label for="email">Email: </label><br>
-        <input type="text" name="email" id="email">
+        <input type="text" name="email" id="email" required>
         <br>
         <label for="password">Heslo: </label><br>
-        <input type="password" name="password" id="password">
+        <input type="password" name="password" id="password" required>
         <br>
         <input type="hidden" name="ucitel" id="ucitel" value="ucitel">
         <input type="submit" value="PRIHLÁSIŤ">
@@ -104,14 +157,17 @@ else if (isset($_POST['student'])) {
 
     <form action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
 
+        <label for="test">Test ID: </label><br>
+        <input type="text" name="test" id="test" required>
+        <br>
         <label for="name">Meno: </label><br>
-        <input type="text" name="name" id="name">
+        <input type="text" name="name" id="name" required>
         <br>
         <label for="surname">Priezvisko: </label><br>
-        <input type="text" name="surname" id="surname">
+        <input type="text" name="surname" id="surname" required>
         <br>
         <label for="ais_id">AIS ID: </label><br>
-        <input type="number" name="ais_id" id="ais_id">
+        <input type="number" name="ais_id" id="ais_id" required>
         <br>
         <input type="hidden" name="student" id="student" value="student">
         <input type="submit" value="OTVORIŤ TEST">
