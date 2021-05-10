@@ -54,6 +54,57 @@
     return $lefDiv . " " . $rightDiv;
   }
 
+function makePainting($questions){
+    $html = '';
+    foreach($questions as $question){
+        if($question['type'] == 'typ4'){
+            $html.= '<p class="painting">Otvorte skicar a nakresli obrazok podla zadania a stiahni ho!</p><br>';
+            $id = $question['questionID'];
+            $content = $question['question'];
+
+
+            $html.='<h2>'.$content.'</h2>';
+        }
+    }
+
+    echo $html;
+    ?>
+    <button onclick="location.href = 'https://wt119.fei.stuba.sk/skuska2/skicar.php';"  class=" submit-button btn btn-secondary" >Skicar</button>
+
+    <form method="POST" action="index.php" enctype="multipart/form-data">
+        <input type="hidden" name="size" value="1000000">
+        <div>
+
+            <input type="file" class="btn btn-secondary" name="image">
+
+        </div>
+        <div>
+            <button type="submit" class="btn btn-secondary" name="upload">POST</button>
+
+        </div>
+    </form>
+    <?php
+    if (isset($_POST['upload'])) {
+
+        $image = $_FILES['image']['name'];
+
+        if ($image ==""){
+            echo "Nevlozil si obrazok";
+        }
+        else {
+            $target = "images/" . basename($image) . $question['questionID'] . ".png";
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                $msg = "Image uploaded successfully";
+            } else {
+                $msg = "Failed to upload image";
+            }
+            $url = "images/" . basename($image) . $question['questionID'] . ".png";
+            echo "<img width='50%' height='50%' src='" . $url . "' >";
+        }
+    }
+
+}
+
 ?>
 
 
@@ -120,6 +171,9 @@
 
 
 
+<?php
+makePainting($questions);
+?>
 
 
 
