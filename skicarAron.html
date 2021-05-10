@@ -1,0 +1,224 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <title>Image Upload</title>
+    <style type="text/css">
+        #content{
+            width: 50%;
+            margin: 20px auto;
+            border: 1px solid #cbcbcb;
+        }
+        form{
+            width: 50%;
+            margin: 20px auto;
+        }
+        form div{
+            margin-top: 5px;
+        }
+        #img_div{
+            width: 80%;
+            padding: 5px;
+            margin: 15px auto;
+            border: 1px solid #cbcbcb;
+        }
+        #img_div:after{
+            content: "";
+            display: block;
+            clear: both;
+        }
+        img{
+            float: left;
+            margin: 5px;
+            width: 300px;
+            height: 140px;
+        }
+        #canvas {
+            border: 1px solid black;
+
+        }
+        .tools{
+            display: flex;
+            justify-content: center;
+            flex-direction: row;
+        }
+        .tools .stroke-color {
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor : pointer;
+            display: inline-block;
+        }
+        .field{
+            display: inline-block;
+
+        }
+
+    </style>
+</head>
+
+<body>
+<canvas id="canvas1" style=" margin-left: 1%; " ></canvas>
+<div class="tools1" style="width: 60%;   margin-left: 20%;">
+
+    <button onclick="canvas1.Restore()" class="btn btn-secondary">Undo</button>
+    <button onclick="canvas1.Clear()" class="btn btn-secondary">Clear</button>
+    <button id="download_canvas1" class="btn btn-secondary" >Download</button>
+    <button onclick="location.href = 'https://wt119.fei.stuba.sk/skuskove_zadanie/';"  class=" submit-button btn btn-secondary" >Spat na test</button>
+
+
+    <div onclick="canvas1.change_color(this)" style="background:red" class="stroke-color"></div>
+    <div onclick="canvas1.change_color(this)" style="background:blue" class="stroke-color"></div>
+    <div onclick="canvas1.change_color(this)" style="background:yellow" class="stroke-color"></div>
+    <div onclick="canvas1.change_color(this)" style="background:green" class="stroke-color"></div>
+
+    <input type="color" oninput="stroke_color = this.value" placeholder="Colors">
+    <input type="range" min="1" max="100" value="1" oninput="stroke_width = this.value">
+
+
+</div>
+<canvas id="canvas2" style=" margin-left: 1%; " ></canvas>
+<div class="tools2" style="width: 60%;   margin-left: 20%;">
+
+    <button onclick="canvas2.Restore()" class="btn btn-secondary">Undo</button>
+    <button onclick="canvas2.Clear()" class="btn btn-secondary">Clear</button>
+    <button id="download_canvas2" class="btn btn-secondary" >Download</button>
+    <button onclick="location.href = 'https://wt119.fei.stuba.sk/skuskove_zadanie/';"  class=" submit-button btn btn-secondary" >Spat na test</button>
+
+
+    <div onclick="canvas2.change_color(this)" style="background:red" class="stroke-color"></div>
+    <div onclick="canvas2.change_color(this)" style="background:blue" class="stroke-color"></div>
+    <div onclick="canvas2.change_color(this)" style="background:yellow" class="stroke-color"></div>
+    <div onclick="canvas2.change_color(this)" style="background:green" class="stroke-color"></div>
+
+    <input type="color" oninput="stroke_color = this.value" placeholder="Colors">
+    <input type="range" min="1" max="100" value="1" oninput="stroke_width = this.value">
+
+
+</div>
+<script>
+
+    class Skicar{
+        constructor(canvasID){
+
+            this.canvas = document.getElementById(canvasID);
+            this.canvas.width = window.innerWidth - 60;
+            this.canvas.height = window.innerHeight * 0.6;
+            this.context = this.canvas.getContext("2d");
+            this.context.fillStyle = "white";
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.restore_array = [];
+            this.start_index = -1;
+            this.stroke_color = 'black';
+            this.stroke_width = "2";
+            this.is_drawing = false;
+
+            this.canvas.addEventListener("touchstart", function(e){this.start(e)}.bind(this), false);
+            this.canvas.addEventListener("touchmove", function(e){this.draw(e)}.bind(this), false);
+            this.canvas.addEventListener("touchend", function(e){this.stop(e)}.bind(this), false);
+            this.canvas.addEventListener("mousedown", function(e){this.start(e)}.bind(this), false);
+            this.canvas.addEventListener("mousemove", function(e){this.draw(e)}.bind(this), false);
+            this.canvas.addEventListener("mouseup", function(e){this.stop(e)}.bind(this), false);
+            this.canvas.addEventListener("mouseout", function(e){this.stop(e)}.bind(this), false);
+
+            const download = document.getElementById(`download_${canvasID}`);
+            download.addEventListener('click', function(e) {
+
+                var canvas = document.getElementById(canvasID);
+                var ctx = canvas.getContext('2d');
+                ctx.beginPath();
+                ctx.arc(100, 100, 50, 1.5 * Math.PI, 0.5 * Math.PI, false);
+                ctx.lineWidth = 10;
+                ctx.stroke();
+                var imgData = canvas.toDataURL();
+                console.log( imgData);
+
+            });
+
+        }
+
+        change_color(element) {
+            this.stroke_color = element.style.background;
+        }
+
+        change_width(element) {
+            this.stroke_width = element.innerHTML
+        }
+
+        start(event) {
+            this.is_drawing = true;
+            this.context.beginPath();
+            this.context.moveTo(this.getX(event), this.getY(event));
+            event.preventDefault();
+        }
+
+        draw(event) {
+            if (this.is_drawing) {
+                this.context.lineTo(this.getX(event), this.getY(event));
+                this.context.strokeStyle = this.stroke_color;
+                this.context.lineWidth = this.stroke_width;
+                this.context.lineCap = "round";
+                this.context.lineJoin = "round";
+                this.context.stroke();
+            }
+            event.preventDefault();
+        }
+
+        stop(event) {
+            if (this.is_drawing) {
+                this.context.stroke();
+                this.context.closePath();
+                this.is_drawing = false;
+            }
+            event.preventDefault();
+            this.restore_array.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+            this.start_index += 1;
+        }
+
+        getX(event) {
+            if (event.pageX == undefined) {return event.targetTouches[0].pageX - this.canvas.offsetLeft}
+            else {return event.pageX - this.canvas.offsetLeft}
+        }
+
+
+        getY(event) {
+            if (event.pageY == undefined) {return event.targetTouches[0].pageY - this.canvas.offsetTop}
+            else {return event.pageY - this.canvas.offsetTop}
+        }
+
+        Restore() {
+            if (this.start_index <= 0) {
+                this.Clear()
+            } else {
+                this.start_index += -1;
+                this.restore_array.pop();
+                if ( event.type != 'mouseout' ) {
+                    this.context.putImageData(this.restore_array[this.start_index], 0, 0);
+                }
+            }
+        }
+
+        Clear() {
+            this.context.fillStyle = "white";
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.restore_array = [];
+            this.start_index = -1;
+        }
+    }
+
+    let canvas1 = new Skicar("canvas1");
+    let canvas2 = new Skicar("canvas2");
+
+</script>
+
+
+
+</body>
+
+</html>
