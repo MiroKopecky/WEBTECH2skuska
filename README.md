@@ -3,8 +3,11 @@
 Prosim v src nic nemente pre istotu aby som ich nahodou nepremazal, subory mozte nahravat na git a ja ich tam budem postupne pridavat.
 
 Aktualna verzia:
+
 vytvaranie otazok - chyba typ 1
+
 generovanie otazok - chyba typ 5
+
 generovanie odpovedi - chyba 1,4,5
 
 phpMyAdmin:
