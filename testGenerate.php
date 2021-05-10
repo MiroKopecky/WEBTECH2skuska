@@ -69,7 +69,8 @@ function makePainting($questions){
 
     echo $html;
     ?>
-    <button onclick="location.href = 'https://wt119.fei.stuba.sk/skuska2/skicar.php';"  class=" submit-button btn btn-secondary" >Skicar</button>
+    <button onclick=" window.open( 'https://wt119.fei.stuba.sk/skuska2/skicar.php');"  class=" submit-button btn btn-secondary" >Skicar</button>
+
 
     <form method="POST" action="index.php" enctype="multipart/form-data">
         <input type="hidden" name="size" value="1000000">
