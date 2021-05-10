@@ -15,7 +15,9 @@
 
 <body>
 
-    Odoslat do DB: <span id="answer">x=</span><br>
+    Otazka: <input type="text" id="question" name="question">
+
+    Priklad: <span id="answer">x=</span><br>
 
     <button id="send">Odoslat</button><br><br>
 
@@ -46,7 +48,7 @@
 
            xhr.open("POST", "sendToDB.php");
            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-           xhr.send("eq=" + enteredMath);
+           xhr.send('question='+ document.getElementById('question').value + '&answer=' + enteredMath);
 
         });
 
