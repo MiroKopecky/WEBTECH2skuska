@@ -2,11 +2,13 @@
     "otazky":[
        {
           "type":"typ1",
+          "points":2,
           "questionID":1565,
           "question":"Kolko noh ma pes?"
        },
        {
           "type":"typ2",
+          "points":2,
           "questionID":1124,
           "question":{
              "textOtazky":"Kolko noh ma pes?",
@@ -20,6 +22,7 @@
        },
        {
           "type":"typ3",
+          "points":2,
           "questionID":1874,
           "question":{
              "leftCol":[
@@ -36,11 +39,13 @@
        },
        {
           "type":"typ4",
+          "points":2,
           "questionID":1812,
           "question":"Nakresli psa"
        },
        {
           "type":"typ5",
+          "points":2,
           "questionID":1200,
           "question":"x=\\frac{45-6}{\\sqrt{11}\\cdot8^e}"
        }
