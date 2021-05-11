@@ -3,16 +3,19 @@
     "odpovede":[
        {
           "type":"typ1",
+          "points":2,
           "questionID":1565,
           "answer":"5"
        },
        {
           "type":"typ2",
+          "points":2,
           "questionID":1124,
           "answer":"4"
        },
        {
           "type":"typ3",
+          "points":2,
           "questionID":1874,
           "answer":[
                 "Horse",
@@ -22,11 +25,13 @@
        },
        {
           "type":"typ4",
+          "points":2,
           "questionID":1812,
           "answer":"nazovSuboru.png"
        },
        {
           "type":"typ5",
+          "points":2,
           "questionID":1200,
           "question":"10"
        }
