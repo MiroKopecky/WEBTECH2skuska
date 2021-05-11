@@ -44,11 +44,25 @@ else if (isset($_POST['student'])) {
         }
         else {
 
+            $test_code = $_POST['test'];
             $tests = null;
             try {
                 $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $stmt = $conn->prepare("SELECT * from testParticipants WHERE aisid='$ais_id'");
+                $stmt = $conn->prepare("SELECT * from test WHERE code='$test_code'");
+                $stmt->execute();
+                $tests = $stmt->fetchAll();
+            }
+            catch (PDOException $exception){
+                echo "Error:" . $exception->getMessage();
+            }
+            $test_id = $tests[0][0];
+
+            $tests = null;
+            try {
+                $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $stmt = $conn->prepare("SELECT * from testParticipants WHERE aisid='$ais_id' AND test_id='$test_id'");
                 $stmt->execute();
                 $tests = $stmt->fetchAll();
             }
@@ -58,7 +72,14 @@ else if (isset($_POST['student'])) {
 
             foreach ($tests as $test) {
                 if ($test[4] == 'solving') {
-                    echo "Tento študent už píše test!";
+                    echo "Študent s týmto AIS ID už píše tento test!";
+                    exit();
+                }
+            }
+
+            foreach ($tests as $test) {
+                if ($test[4] == 'done') {
+                    echo "Študent s týmto AIS ID už písal tento test!";
                     exit();
                 }
             }

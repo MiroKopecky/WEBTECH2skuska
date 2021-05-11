@@ -55,7 +55,6 @@ function makeSelect($questions){
         if($question['type'] == 'typ2'){
             $answers = [];
             $id = $question['questionID'];
-            var_dump($id);
             foreach ($question['question']['mozneOdpovede'] as $answer) {
                 array_push($answers, $answer);
             }
@@ -322,13 +321,13 @@ makePainting($questions);
     function select(id) {
         var element = document.getElementById(id);
         var size = element.childElementCount;
-        var pole = [];
+        var answer;
         for (var x = 1; x < size; x++) {
             var child = getChildElement(element, x);
             var text = child.value;
-            pole.push(text);
+            answer = text;
         }
-        return ({type:"type2",id:id,answer:pole});
+        return ({type:"typ2",questionID:id,answer:answer});
     }
 
     //typ3
@@ -336,7 +335,7 @@ makePainting($questions);
         return $(this).attr('id');
     });
 
-    function a(id) {
+    function pairing(id) {
         var element = document.getElementById(id);
         var size = element.childElementCount;
         var pole = [];
@@ -345,30 +344,37 @@ makePainting($questions);
             var text = child.textContent || child.innerText;
             pole.push(text);
         }
-        return ({type:"type3",id:id,answer:pole});
+        return ({type:"typ3",questionID:id,answer:pole});
     }
 
-    var json;
+
     function results(){
+        var json = {};
+        var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
+
         var data = [];
+
         for(var i = 0; i < select_ids.length; i++){
             data.push(select(select_ids[i]));
         }
         for(var i = 0; i < ids.length; i++){
-            data.push(a(ids[i]));
+            data.push(pairing(ids[i]));
         }
-        var json = JSON.stringify(data);
-        console.log(json);
-    }
+        json['metaData'] = metadata;
+        json['odpovede'] = data;
 
-    $.ajax({
-        url: 'https://wt79.fei.stuba.sk/skuska/student/insertTest.php',
-        type: 'post',
-        data: {json},
-        success: function(response){
-            console.log("ok");
-        }
-    })
+        json = JSON.stringify(json);
+        console.log(json);
+
+        $.ajax({
+            url: 'https://wt79.fei.stuba.sk/skuska/student/post.php',
+            type: 'post',
+            data: json,
+            success: function(response){
+                console.log("ok");
+            }
+        })
+    }
 
     //timer
     function getTimeRemaining(endtime) {
@@ -403,6 +409,7 @@ makePainting($questions);
 
             if (t.total <= 0) {
                 clearInterval(timeinterval);
+                results();
             }
         }
 
@@ -418,6 +425,7 @@ makePainting($questions);
 <form action="" method="post">
     <input type="submit" onclick="results()" value="UKONČIŤ TEST" name="exit">
 </form>
+
 
 </body>
 </html>
