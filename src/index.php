@@ -47,7 +47,9 @@ catch (PDOException $exception){
 }
 
 foreach ($tests as $test) {
-    echo "id: " . $test[0] . " active: " . $test[3] . " code: " . $test[1] ."<br>";
+    echo "id: " . $test[0] . " active: " . $test[3] . " code: " . $test[1] ."
+<a href='./teacher/active.php?test=$test[0]&active=$test[3]'><input type='button' value='DE/AKTIVOVAŤ TEST'></a>
+<br>";
 }
 
 ?>

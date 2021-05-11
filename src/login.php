@@ -58,6 +58,11 @@ else if (isset($_POST['student'])) {
             }
             $test_id = $tests[0][0];
 
+            if ($tests[0][3] == 0) {
+                echo "Tento test nie je aktívny!";
+                exit();
+            }
+
             $tests = null;
             try {
                 $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
@@ -101,37 +106,71 @@ else if (isset($_POST['student'])) {
                 $test_id = $tests[0][0];
                 $status = "solving";
 
+                $students = null;
                 try {
                     $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                    $stmt = $conn->prepare("INSERT INTO students (name, surname, AISid) VALUES (:name, :surname, :ais_id)");
-                    $stmt->bindParam(':name',$name);
-                    $stmt->bindParam(':surname',$surname);
-                    $stmt->bindParam(':ais_id',$ais_id);
+                    $stmt = $conn->prepare("SELECT * from students WHERE aisid='$ais_id'");
                     $stmt->execute();
-                    $id = $conn->lastInsertId();
-                    $_SESSION['id'] = $id;
-                    $_SESSION['student_check'] = true;
+                    $students = $stmt->fetchAll();
                 }
                 catch (PDOException $exception){
-                    echo "Tento študent už píše test!";
-                    exit();
+                    echo "Error:" . $exception->getMessage();
                 }
 
-                try {
-                    $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
-                    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                    $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status) VALUES (:test_id, :student_id, :aisid, :status)");
-                    $stmt->bindParam(':test_id',$test_id);
-                    $stmt->bindParam(':student_id',$_SESSION['id']);
-                    $stmt->bindParam(':aisid',$ais_id);
-                    $stmt->bindParam(':status',$status);
-                    $stmt->execute();
-                    $_SESSION['test_id'] = $test_id;
-                    header("Location: ./student");
+                if ($students != null) {
+                    $student_id = $students[0][0];
+                    try {
+                        $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status) VALUES (:test_id, :student_id, :aisid, :status)");
+                        $stmt->bindParam(':test_id',$test_id);
+                        $stmt->bindParam(':student_id',$student_id);
+                        $stmt->bindParam(':aisid',$ais_id);
+                        $stmt->bindParam(':status',$status);
+                        $stmt->execute();
+                        $_SESSION['test_id'] = $test_id;
+                        $_SESSION['id'] = $student_id;
+                        $_SESSION['student_check'] = true;
+                        header("Location: ./student");
+                    }
+                    catch (PDOException $exception){
+                        echo "Chyba: " . $exception;
+                    }
                 }
-                catch (PDOException $exception){
-                    echo "Chyba: " . $exception;
+                else {
+                    try {
+                        $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $stmt = $conn->prepare("INSERT INTO students (name, surname, AISid) VALUES (:name, :surname, :ais_id)");
+                        $stmt->bindParam(':name',$name);
+                        $stmt->bindParam(':surname',$surname);
+                        $stmt->bindParam(':ais_id',$ais_id);
+                        $stmt->execute();
+                        $id = $conn->lastInsertId();
+                        $_SESSION['id'] = $id;
+                        $_SESSION['student_check'] = true;
+                    }
+                    catch (PDOException $exception){
+                        echo "Tento študent už píše test!";
+                        exit();
+                    }
+
+                    try {
+                        $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status) VALUES (:test_id, :student_id, :aisid, :status)");
+                        $stmt->bindParam(':test_id',$test_id);
+                        $stmt->bindParam(':student_id',$_SESSION['id']);
+                        $stmt->bindParam(':aisid',$ais_id);
+                        $stmt->bindParam(':status',$status);
+                        $stmt->execute();
+                        $_SESSION['test_id'] = $test_id;
+                        header("Location: ./student");
+                    }
+                    catch (PDOException $exception){
+                        echo "Chyba: " . $exception;
+                    }
                 }
             }
 
