@@ -367,34 +367,6 @@ function pairing(id) {
 }
 
 
-function results(){
-    var json = {};
-    var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
-
-    var data = [];
-
-    for(var i = 0; i < select_ids.length; i++){
-        data.push(select(select_ids[i]));
-    }
-    for(var i = 0; i < ids.length; i++){
-        data.push(pairing(ids[i]));
-    }
-    json['metaData'] = metadata;
-    json['odpovede'] = data;
-
-    json = JSON.stringify(json);
-    console.log(json);
-
-    $.ajax({
-        url: 'https://wt113.fei.stuba.sk/skuskaDev/student/post.php',
-        type: 'post',
-        data: json,
-        success: function(response){
-            console.log("ok");
-        }
-    })
-}
-
 var xmlHttp;
 function srvTime(){
     try {
@@ -421,6 +393,48 @@ function srvTime(){
     xmlHttp.send('');
     return xmlHttp.getResponseHeader("Date");
 }
+
+
+function results(){
+
+    var endTime = <?php echo $_SESSION['timeEnd']?>;
+    var st = srvTime();
+    var serverTime = new Date(st)/1000;
+    console.log(endTime + ' ' + serverTime );
+    if((endTime-serverTime)>=-4){ // 4 sekundova tolerancia,kvôli delayu, ktory môže nastať pri viacnasobnom refreshi avšak stačila by asi aj sekunda
+        var json = {};
+        var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
+
+        var data = [];
+
+        for(var i = 0; i < select_ids.length; i++){
+            data.push(select(select_ids[i]));
+        }
+        for(var i = 0; i < ids.length; i++){
+            data.push(pairing(ids[i]));
+        }
+        json['metaData'] = metadata;
+        json['odpovede'] = data;
+
+        json = JSON.stringify(json);
+        console.log(json);
+
+        $.ajax({
+            url: 'https://wt113.fei.stuba.sk/skuskaDev/student/post.php',
+            type: 'post',
+            data: json,
+            success: function(response){
+                console.log("ok");
+            }
+        })
+    }else{
+        alert("Ty špekulant");
+    } 
+
+
+}
+
+
 
 function getTimeRemaining(endtime) {
   const total = Date.parse(endtime) - Date.parse(new Date());
@@ -458,7 +472,7 @@ function initializeClock(id, endtime) {
       var st = srvTime();
       var serverTime = new Date(st)/1000;
       console.log(endTime + ' ' + serverTime );
-      if((endTime-serverTime)>=0){
+      if((endTime-serverTime)>=-4){  // 4 sekundova tolerancia,kvôli delayu, ktory môže nastať pri viacnasobnom refreshi avšak stačila by asi aj sekunda
         results();
       } 
     }
