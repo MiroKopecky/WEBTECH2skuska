@@ -33,9 +33,28 @@ $sql = "SELECT timelimit FROM test WHERE id='$test_id'";
 $stm = $conn->query($sql);
 $test = $stm->fetch(PDO::FETCH_ASSOC);
 
-$json = file_get_contents("https://wt79.fei.stuba.sk/skuska/student/get.php?testId=$test_id");
+date_default_timezone_set('Europe/Bratislava');
 
-var_dump($json);
+if($_SESSION['timeEnd'] ==null){
+    $secNow = date(time()); //aktualny cas v sekundach
+    $secNow = intval($secNow);
+    $timeEnd = $secNow + $test['timelimit']*60; // pripocitanie casu na vypracovanie testu => maxTime
+    $_SESSION['timeEnd'] = $timeEnd;
+    $_SESSION['secCounter'] = $test['timelimit'];
+}else{
+    $secNow = date(time()); //aktualny cas v sekundach
+    $secNow = intval($secNow);
+    if((($_SESSION['timeEnd']-$secNow)/60) >0){
+        $_SESSION['secCounter'] = ($_SESSION['timeEnd']-$secNow)/60;
+    }else{
+        $_SESSION['secCounter'] = 0;
+    }
+    //var_dump($_SESSION['secCouter']);
+}
+
+$json = file_get_contents("https://wt113.fei.stuba.sk/skuskaDev/student/get.php?testId=$test_id");
+
+//var_dump($json);
 
 $data = json_decode($json,true);
 $questions = $data['otazky'];
@@ -296,129 +315,162 @@ makePainting($questions);
 
 
 <script>
-    /*Script ku párovacej otzáke- Dano  */
-    function getChildElement(element, index) {
-        var elementCount = 0;
-        var child = element.firstChild;
+/*Script ku párovacej otzáke- Dano  */
+function getChildElement(element, index) {
+    var elementCount = 0;
+    var child = element.firstChild;
 
-        while (child) {
-            if (child.nodeType == 1) { // Node with nodeType 1 is an Element
-                if (elementCount == index) {
-                    return child;
-                }
-                elementCount++;
+    while (child) {
+        if (child.nodeType == 1) { // Node with nodeType 1 is an Element
+            if (elementCount == index) {
+                return child;
             }
-            child = child.nextSibling;
+            elementCount++;
         }
+        child = child.nextSibling;
     }
+}
 
-    //typ2
-    var select_ids = $('.answer_select').map(function() {
-        console.log($(this).attr('id'));
-        return $(this).attr('id');
-    });
+//typ2
+var select_ids = $('.answer_select').map(function() {
+    console.log($(this).attr('id'));
+    return $(this).attr('id');
+});
 
-    function select(id) {
-        var element = document.getElementById(id);
-        var size = element.childElementCount;
-        var answer;
-        for (var x = 1; x < size; x++) {
-            var child = getChildElement(element, x);
-            var text = child.value;
-            answer = text;
-        }
-        return ({type:"typ2",questionID:id,answer:answer});
+function select(id) {
+    var element = document.getElementById(id);
+    var size = element.childElementCount;
+    var answer;
+    for (var x = 1; x < size; x++) {
+        var child = getChildElement(element, x);
+        var text = child.value;
+        answer = text;
     }
+    return ({type:"typ2",questionID:id,answer:answer});
+}
 
     //typ3
-    var ids = $('.help').map(function() {
-        return $(this).attr('id');
-    });
+var ids = $('.help').map(function() {
+    return $(this).attr('id');
+});
 
-    function pairing(id) {
-        var element = document.getElementById(id);
-        var size = element.childElementCount;
-        var pole = [];
-        for (var x = 0; x < size; x++) {
-            var child = getChildElement(element, x);
-            var text = child.textContent || child.innerText;
-            pole.push(text);
-        }
-        return ({type:"typ3",questionID:id,answer:pole});
+function pairing(id) {
+    var element = document.getElementById(id);
+    var size = element.childElementCount;
+    var pole = [];
+    for (var x = 0; x < size; x++) {
+        var child = getChildElement(element, x);
+        var text = child.textContent || child.innerText;
+        pole.push(text);
     }
+    return ({type:"typ3",questionID:id,answer:pole});
+}
 
 
-    function results(){
-        var json = {};
-        var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
+function results(){
+    var json = {};
+    var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
 
-        var data = [];
+    var data = [];
 
-        for(var i = 0; i < select_ids.length; i++){
-            data.push(select(select_ids[i]));
+    for(var i = 0; i < select_ids.length; i++){
+        data.push(select(select_ids[i]));
+    }
+    for(var i = 0; i < ids.length; i++){
+        data.push(pairing(ids[i]));
+    }
+    json['metaData'] = metadata;
+    json['odpovede'] = data;
+
+    json = JSON.stringify(json);
+    console.log(json);
+
+    $.ajax({
+        url: 'https://wt113.fei.stuba.sk/skuskaDev/student/post.php',
+        type: 'post',
+        data: json,
+        success: function(response){
+            console.log("ok");
         }
-        for(var i = 0; i < ids.length; i++){
-            data.push(pairing(ids[i]));
+    })
+}
+
+var xmlHttp;
+function srvTime(){
+    try {
+        //FF, Opera, Safari, Chrome
+        xmlHttp = new XMLHttpRequest();
+    }
+    catch (err1) {
+        //IE
+        try {
+            xmlHttp = new ActiveXObject('Msxml2.XMLHTTP');
         }
-        json['metaData'] = metadata;
-        json['odpovede'] = data;
-
-        json = JSON.stringify(json);
-        console.log(json);
-
-        $.ajax({
-            url: 'https://wt79.fei.stuba.sk/skuska/student/post.php',
-            type: 'post',
-            data: json,
-            success: function(response){
-                console.log("ok");
+        catch (err2) {
+            try {
+                xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
             }
-        })
-    }
-
-    //timer
-    function getTimeRemaining(endtime) {
-        const total = Date.parse(endtime) - Date.parse(new Date());
-        const seconds = Math.floor((total / 1000) % 60);
-        const minutes = Math.floor((total / 1000 / 60) % 60);
-        const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
-
-
-        return {
-            total,
-            hours,
-            minutes,
-            seconds
-        };
-    }
-
-    function initializeClock(id, endtime) {
-        const clock = document.getElementById(id);
-        const daysSpan = clock.querySelector('.days');
-        const hoursSpan = clock.querySelector('.hours');
-        const minutesSpan = clock.querySelector('.minutes');
-        const secondsSpan = clock.querySelector('.seconds');
-
-        function updateClock() {
-            const t = getTimeRemaining(endtime);
-
-
-            hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
-            minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
-            secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
-
-            if (t.total <= 0) {
-                clearInterval(timeinterval);
-                results();
+            catch (eerr3) {
+                //AJAX not supported, use CPU time.
+                alert("AJAX not supported");
             }
         }
-
-        updateClock();
-        const timeinterval = setInterval(updateClock, 1000);
     }
+    xmlHttp.open('HEAD',window.location.href.toString(),false);
+    xmlHttp.setRequestHeader("Content-Type", "text/html");
+    xmlHttp.send('');
+    return xmlHttp.getResponseHeader("Date");
+}
 
-    const deadline = new Date(Date.parse(new Date()) + <?php echo $test['timelimit']?>* 60 * 1000);
-    initializeClock('clockdiv', deadline);
+function getTimeRemaining(endtime) {
+  const total = Date.parse(endtime) - Date.parse(new Date());
+  const seconds = Math.floor((total / 1000) % 60);
+  const minutes = Math.floor((total / 1000 / 60) % 60);
+  const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+
+  
+  return {
+    total,
+    hours,
+    minutes,
+    seconds
+  };
+}
+
+function initializeClock(id, endtime) {
+  const clock = document.getElementById(id);
+  const daysSpan = clock.querySelector('.days');
+  const hoursSpan = clock.querySelector('.hours');
+  const minutesSpan = clock.querySelector('.minutes');
+  const secondsSpan = clock.querySelector('.seconds');
+
+  function updateClock() {
+    const t = getTimeRemaining(endtime);
+
+
+    hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
+    minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
+    secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
+
+    if (t.total <= 0) {
+      clearInterval(timeinterval);
+      var endTime = <?php echo $_SESSION['timeEnd']?>;
+      var st = srvTime();
+      var serverTime = new Date(st)/1000;
+      console.log(endTime + ' ' + serverTime );
+      if((endTime-serverTime)>=0){
+        results();
+      } 
+    }
+  }
+
+  updateClock();
+  const timeinterval = setInterval(updateClock, 1000);
+}
+
+const deadline = new Date(Date.parse(new Date()) + <?php echo $_SESSION['secCounter']?>* 60 * 1000);
+initializeClock('clockdiv', deadline);
+
 
 </script>
 
