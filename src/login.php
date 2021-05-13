@@ -32,7 +32,7 @@ if (isset($_POST['ucitel'])) {
             }
         }
     }
-    echo "<p class='note'>Nesprávny email alebo heslo!</p>";
+    echo "<p class='note h4 alert-danger'>Nesprávny email alebo heslo!</p>";
 }
 else if (isset($_POST['student'])) {
     if ($_POST['test'] != "" && $_POST['name'] != "" && $_POST['surname'] != "" && $_POST['ais_id'] != null) {
@@ -190,56 +190,67 @@ else if (isset($_POST['student'])) {
 <head>
     <title>Prihlásenie</title>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <style>
+    </style>
 </head>
-<body>
+<body class="bg-light">
 
-<div>
-    <input type="button" onclick="switch_role_teacher()" value="UČITEĽ" />
-    <input type="button" onclick="switch_role_student()" value="ŠTUDENT" />
-</div>
+<div class="container bg-dark text-white mt-4 p-5">
 
-<div id="teacher_login">
+    <div class="row">
+        <div class="col text-center">
+            <input class="btn btn-lg btn-primary col-md-5 m-1" id="ucitel" type="button" onclick="switch_role_teacher()" value="UČITEĽ" />
+            <input class="btn btn-lg btn-primary col-md-5 m-1" id="student" type="button" onclick="switch_role_student()" value="ŠTUDENT" />
+        </div>
+    </div>
 
-    <form action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
+    <div id="teacher_login">
 
-        <label for="email">Email: </label><br>
-        <input type="text" name="email" id="email" required>
-        <br>
-        <label for="password">Heslo: </label><br>
-        <input type="password" name="password" id="password" required>
-        <br>
-        <input type="hidden" name="ucitel" id="ucitel" value="ucitel">
-        <input type="submit" value="PRIHLÁSIŤ">
+        <form class="form-signin" action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
 
-    </form>
+            <label for="email">Email: </label><br>
+            <input type="text" class="form-control" name="email" id="email" required>
+            <br>
+            <label for="password">Heslo: </label><br>
+            <input type="password" class="form-control" name="password" id="password" required>
+            <br>
+            <input type="hidden" name="ucitel" id="ucitel" value="ucitel">
+            <input class="btn btn-lg btn-primary btn-block" type="submit" value="PRIHLÁSIŤ">
 
-</div>
+        </form>
 
-<div id="student_login">
+    </div>
 
-    <form action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
+    <div id="student_login">
 
-        <label for="test">Test ID: </label><br>
-        <input type="text" name="test" id="test" required>
-        <br>
-        <label for="name">Meno: </label><br>
-        <input type="text" name="name" id="name" required>
-        <br>
-        <label for="surname">Priezvisko: </label><br>
-        <input type="text" name="surname" id="surname" required>
-        <br>
-        <label for="ais_id">AIS ID: </label><br>
-        <input type="number" name="ais_id" id="ais_id" required>
-        <br>
-        <input type="hidden" name="student" id="student" value="student">
-        <input type="submit" value="OTVORIŤ TEST">
+        <form class="form-signin" action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
 
-    </form>
+            <label for="test">Test ID: </label><br>
+            <input type="text" class="form-control" name="test" id="test" required>
+            <br>
+            <label for="name">Meno: </label><br>
+            <input type="text" class="form-control" name="name" id="name" required>
+            <br>
+            <label for="surname">Priezvisko: </label><br>
+            <input type="text" class="form-control" name="surname" id="surname" required>
+            <br>
+            <label for="ais_id">AIS ID: </label><br>
+            <input type="number" class="form-control" name="ais_id" id="ais_id" required>
+            <br>
+            <input type="hidden" name="student" id="student" value="student">
+            <input class="btn btn-lg btn-primary btn-block" type="submit" value="OTVORIŤ TEST">
 
-</div>
+        </form>
 
-<div>
-    <input id="signin" type="button" onclick="location.href='signin.php';" value="ZAREGISTROVAŤ" />
+    </div>
+
+    <p></p>
+
+    <div>
+        <input class="btn btn-lg btn-primary btn-block" id="signin" type="button" onclick="location.href='signin.php';" value="ZAREGISTROVAŤ" />
+    </div>
+
 </div>
 
 <script>
