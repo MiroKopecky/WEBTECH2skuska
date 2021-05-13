@@ -117,17 +117,18 @@ else if (isset($_POST['student'])) {
                 catch (PDOException $exception){
                     echo "Error:" . $exception->getMessage();
                 }
-
+                $timeNow = date(time());
                 if ($students != null) {
                     $student_id = $students[0][0];
                     try {
                         $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                        $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status) VALUES (:test_id, :student_id, :aisid, :status)");
+                        $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status, start) VALUES (:test_id, :student_id, :aisid, :status, :start)");
                         $stmt->bindParam(':test_id',$test_id);
                         $stmt->bindParam(':student_id',$student_id);
                         $stmt->bindParam(':aisid',$ais_id);
                         $stmt->bindParam(':status',$status);
+                        $stmt->bindParam(':start',$timeNow);
                         $stmt->execute();
                         $_SESSION['test_id'] = $test_id;
                         $_SESSION['id'] = $student_id;
@@ -159,11 +160,12 @@ else if (isset($_POST['student'])) {
                     try {
                         $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
                         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                        $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status) VALUES (:test_id, :student_id, :aisid, :status)");
+                        $stmt = $conn->prepare("INSERT INTO testParticipants (test_id, student_id, aisid, status, start) VALUES (:test_id, :student_id, :aisid, :status, :start)");
                         $stmt->bindParam(':test_id',$test_id);
                         $stmt->bindParam(':student_id',$_SESSION['id']);
                         $stmt->bindParam(':aisid',$ais_id);
                         $stmt->bindParam(':status',$status);
+                        $stmt->bindParam(':start',$timeNow);
                         $stmt->execute();
                         $_SESSION['test_id'] = $test_id;
                         header("Location: ./student");

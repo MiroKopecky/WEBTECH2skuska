@@ -22,6 +22,7 @@ if (isset($_POST['logout'])) {
 Hlavna stranka ucitela
 
 <input type="button" onclick="location.href='./teacher/create_test.php';" value="Vytvoriť test" />
+<input type="button" onclick="location.href='./teacher/pdf.php';" value="Exportovat test do pdf" />
 
 <h4>Vytvorené testy:</h4>
 
@@ -47,8 +48,10 @@ catch (PDOException $exception){
 }
 
 foreach ($tests as $test) {
-    echo "id: " . $test[0] . " active: " . $test[3] . " code: " . $test[1] ."
-<a href='./teacher/active.php?test=$test[0]&active=$test[3]'><input type='button' value='DE/AKTIVOVAŤ TEST'></a>
+    echo "id: " . $test[0] . " active: " . $test[3] . " code: " . $test[1] ." 
+<a href='./teacher/active.php?test=$test[0]&active=$test[3]'><input type='button' value='DE/AKTIVOVAŤ TEST'></a>  
+<a href='./teacher/test_done.php?test=$test[0]'><input type='button' value='ZOZNAM ŠTUDENTOV KTORÍ UŽ PÍSALI TENTO TEST'></a>
+<a href='./teacher/test_solving.php?test=$test[0]'><input type='button' value='ZOZNAM ŠTUDENTOV KTORÍ AKTUÁLNE PÍŠU TENTO TEST'></a>
 <br>";
 }
 

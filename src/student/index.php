@@ -52,7 +52,7 @@ if($_SESSION['timeEnd'] ==null){
     //var_dump($_SESSION['secCouter']);
 }
 
-$json = file_get_contents("https://wt113.fei.stuba.sk/skuskaDev/student/get.php?testId=$test_id");
+$json = file_get_contents("https://wt79.fei.stuba.sk/skuska/student/get.php?testId=$test_id");
 
 //var_dump($json);
 
@@ -151,21 +151,7 @@ function makePainting($questions){
 
     echo $html;
     ?>
-    <button onclick=" window.open( 'https://wt119.fei.stuba.sk/skuska2/skicar.php');"  class=" submit-button btn btn-secondary" >Skicar</button>
 
-
-    <form method="POST" action="index.php" enctype="multipart/form-data">
-        <input type="hidden" name="size" value="1000000">
-        <div>
-
-            <input type="file" class="btn btn-secondary" name="image">
-
-        </div>
-        <div>
-            <button type="submit" class="btn btn-secondary" name="upload">POST</button>
-
-        </div>
-    </form>
     <?php
     if (isset($_POST['upload'])) {
 
@@ -199,6 +185,9 @@ function makePainting($questions){
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Test Template</title>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css">
+
     <style>
         .pairingQ{
             float: left;
@@ -276,6 +265,10 @@ function makePainting($questions){
     <!-- potrebne pre párovacie otázkky -->
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!--    Matematicka otazka-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+
     <script>
         <?php
         generateScript($questions);
@@ -292,6 +285,13 @@ makeSelect($questions);
 makePairingQ($questions);
 makePainting($questions);
 ?>
+
+<!--****************************************************************MATEMATICKA-->
+<p>Vypočítaj príklad:</p>
+
+<div id="mathDiv">
+    <div id="mathQ"></div><br>
+</div>
 
 <h1>Zostávajúci čas na vypracovanie</h1>
 <div id="clockdiv">
@@ -315,176 +315,207 @@ makePainting($questions);
 
 
 <script>
-/*Script ku párovacej otzáke- Dano  */
-function getChildElement(element, index) {
-    var elementCount = 0;
-    var child = element.firstChild;
+    /*Script ku párovacej otzáke- Dano  */
+    function getChildElement(element, index) {
+        var elementCount = 0;
+        var child = element.firstChild;
 
-    while (child) {
-        if (child.nodeType == 1) { // Node with nodeType 1 is an Element
-            if (elementCount == index) {
-                return child;
+        while (child) {
+            if (child.nodeType == 1) { // Node with nodeType 1 is an Element
+                if (elementCount == index) {
+                    return child;
+                }
+                elementCount++;
             }
-            elementCount++;
+            child = child.nextSibling;
         }
-        child = child.nextSibling;
     }
-}
 
-//typ2
-var select_ids = $('.answer_select').map(function() {
-    console.log($(this).attr('id'));
-    return $(this).attr('id');
-});
+    //typ2
+    var select_ids = $('.answer_select').map(function() {
+        console.log($(this).attr('id'));
+        return $(this).attr('id');
+    });
 
-function select(id) {
-    var element = document.getElementById(id);
-    var size = element.childElementCount;
-    var answer;
-    for (var x = 1; x < size; x++) {
-        var child = getChildElement(element, x);
-        var text = child.value;
-        answer = text;
+    function select(id) {
+        var element = document.getElementById(id);
+        var size = element.childElementCount;
+        var answer;
+        for (var x = 1; x < size; x++) {
+            var child = getChildElement(element, x);
+            var text = child.value;
+            answer = text;
+        }
+        return ({type:"typ2",questionID:id,answer:answer});
     }
-    return ({type:"typ2",questionID:id,answer:answer});
-}
 
     //typ3
-var ids = $('.help').map(function() {
-    return $(this).attr('id');
-});
+    var ids = $('.help').map(function() {
+        return $(this).attr('id');
+    });
 
-function pairing(id) {
-    var element = document.getElementById(id);
-    var size = element.childElementCount;
-    var pole = [];
-    for (var x = 0; x < size; x++) {
-        var child = getChildElement(element, x);
-        var text = child.textContent || child.innerText;
-        pole.push(text);
-    }
-    return ({type:"typ3",questionID:id,answer:pole});
-}
+    //typ5
+    var mathId = function() {
+        return document.querySelector('.mathAnswer').id;
+    };
 
-
-var xmlHttp;
-function srvTime(){
-    try {
-        //FF, Opera, Safari, Chrome
-        xmlHttp = new XMLHttpRequest();
-    }
-    catch (err1) {
-        //IE
-        try {
-            xmlHttp = new ActiveXObject('Msxml2.XMLHTTP');
+    function pairing(id) {
+        var element = document.getElementById(id);
+        var size = element.childElementCount;
+        var pole = [];
+        for (var x = 0; x < size; x++) {
+            var child = getChildElement(element, x);
+            var text = child.textContent || child.innerText;
+            pole.push(text);
         }
-        catch (err2) {
-            try {
-                xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
+        return ({type:"typ3",questionID:id,answer:pole});
+    }
+
+    //typ5
+    function math(id,latex) {
+        return ({type:"typ5",questionID:id,answer:latex});
+    }
+
+
+
+    function results(){
+
+        var endTime = <?php echo $_SESSION['timeEnd']?>;
+        var timeNow = (new Date().getTime() / 1000);
+        var dif = endTime-timeNow;
+        if(dif>=-5){ // 5 sekundova tolerancia,kvôli delayu, ktory môže nastať pri viacnasobnom refreshi avšak stačila by asi aj sekunda
+            var json = {};
+            var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
+
+            var data = [];
+
+            for(var i = 0; i < select_ids.length; i++){
+                data.push(select(select_ids[i]));
             }
-            catch (eerr3) {
-                //AJAX not supported, use CPU time.
-                alert("AJAX not supported");
+            for(var i = 0; i < ids.length; i++){
+                data.push(pairing(ids[i]));
+            }
+            data.push(math(mathId(),enteredMath));
+
+            json['metaData'] = metadata;
+            json['odpovede'] = data;
+
+            json = JSON.stringify(json);
+            console.log(json);
+
+            $.ajax({
+                url: 'https://wt79.fei.stuba.sk/skuska/student/post.php',
+                type: 'post',
+                data: json,
+                success: function(response){
+                    console.log("ok");
+                }
+            })
+        }else{
+            alert("Nonono!! Ty špekulant");
+        }
+
+
+    }
+
+
+
+    function getTimeRemaining(endtime) {
+        const total = Date.parse(endtime) - Date.parse(new Date());
+        const seconds = Math.floor((total / 1000) % 60);
+        const minutes = Math.floor((total / 1000 / 60) % 60);
+        const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+
+
+        return {
+            total,
+            hours,
+            minutes,
+            seconds
+        };
+    }
+
+    function initializeClock(id, endtime) {
+        const clock = document.getElementById(id);
+        const daysSpan = clock.querySelector('.days');
+        const hoursSpan = clock.querySelector('.hours');
+        const minutesSpan = clock.querySelector('.minutes');
+        const secondsSpan = clock.querySelector('.seconds');
+
+        function updateClock() {
+            const t = getTimeRemaining(endtime);
+
+
+            hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
+            minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
+            secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
+
+            if (t.total <= 0) {
+                clearInterval(timeinterval);
+                var endTime = <?php echo $_SESSION['timeEnd']?>;
+                var timeNow = (new Date().getTime() / 1000);
+                var dif = endTime-timeNow;
+                if(dif>=-5){ // 5 sekundova tolerancia,kvôli delayu, ktory môže nastať pri viacnasobnom refreshi avšak stačila by asi aj sekunda
+                    results();
+                    alert("čas vypršal - odpovede zaznamené");
+                    window.location = '../login.php';
+                }
             }
         }
+
+        updateClock();
+        const timeinterval = setInterval(updateClock, 1000);
     }
-    xmlHttp.open('HEAD',window.location.href.toString(),false);
-    xmlHttp.setRequestHeader("Content-Type", "text/html");
-    xmlHttp.send('');
-    return xmlHttp.getResponseHeader("Date");
-}
+
+    const deadline = new Date(Date.parse(new Date()) + <?php echo $_SESSION['secCounter']?>* 60 * 1000);
+    initializeClock('clockdiv', deadline);
 
 
-function results(){
+</script>
 
-    var endTime = <?php echo $_SESSION['timeEnd']?>;
-    var st = srvTime();
-    var serverTime = new Date(st)/1000;
-    console.log(endTime + ' ' + serverTime );
-    if((endTime-serverTime)>=-4){ // 4 sekundova tolerancia,kvôli delayu, ktory môže nastať pri viacnasobnom refreshi avšak stačila by asi aj sekunda
-        var json = {};
-        var metadata = [<?php echo $_SESSION['test_id'];?>,<?php echo $_SESSION['id'];?>];
+<script>
 
-        var data = [];
+    var MQ = MathQuill.getInterface(2);
 
-        for(var i = 0; i < select_ids.length; i++){
-            data.push(select(select_ids[i]));
+    var questionDiv = document.getElementById("mathQ");
+
+    var answerDiv = document.getElementById("mathDiv");
+
+    var enteredMath = 0;
+
+    var json = <?php
+        echo json_encode($questions);
+        ?>;
+
+    console.log(json);
+    for(var k in json) {
+        if (json[k].type === "typ5"){
+
+            ///OTAZKA
+            var mathField = MQ.MathField(questionDiv);
+            mathField.latex(json[k].question);
+
+            ///ODPOVED
+            var mathA = document.createElement("div");
+            mathA.setAttribute("id", json[k].questionID);
+            mathA.setAttribute("class", "mathAnswer");
+            mathA.textContent = "x=";
+            answerDiv.appendChild(mathA);
+
+            var answerMathField = MQ.MathField(mathA, {
+                handlers: {
+                    edit: function() {
+                        enteredMath = answerMathField.latex();
+                        //console.log(enteredMath);
+                    }
+                }
+            });
+
+            break;
         }
-        for(var i = 0; i < ids.length; i++){
-            data.push(pairing(ids[i]));
-        }
-        json['metaData'] = metadata;
-        json['odpovede'] = data;
-
-        json = JSON.stringify(json);
-        console.log(json);
-
-        $.ajax({
-            url: 'https://wt113.fei.stuba.sk/skuskaDev/student/post.php',
-            type: 'post',
-            data: json,
-            success: function(response){
-                console.log("ok");
-            }
-        })
-    }else{
-        alert("Ty špekulant");
-    } 
 
 
-}
-
-
-
-function getTimeRemaining(endtime) {
-  const total = Date.parse(endtime) - Date.parse(new Date());
-  const seconds = Math.floor((total / 1000) % 60);
-  const minutes = Math.floor((total / 1000 / 60) % 60);
-  const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
-
-  
-  return {
-    total,
-    hours,
-    minutes,
-    seconds
-  };
-}
-
-function initializeClock(id, endtime) {
-  const clock = document.getElementById(id);
-  const daysSpan = clock.querySelector('.days');
-  const hoursSpan = clock.querySelector('.hours');
-  const minutesSpan = clock.querySelector('.minutes');
-  const secondsSpan = clock.querySelector('.seconds');
-
-  function updateClock() {
-    const t = getTimeRemaining(endtime);
-
-
-    hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
-    minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
-    secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
-
-    if (t.total <= 0) {
-      clearInterval(timeinterval);
-      var endTime = <?php echo $_SESSION['timeEnd']?>;
-      var st = srvTime();
-      var serverTime = new Date(st)/1000;
-      console.log(endTime + ' ' + serverTime );
-      if((endTime-serverTime)>=-4){  // 4 sekundova tolerancia,kvôli delayu, ktory môže nastať pri viacnasobnom refreshi avšak stačila by asi aj sekunda
-        results();
-      } 
     }
-  }
-
-  updateClock();
-  const timeinterval = setInterval(updateClock, 1000);
-}
-
-const deadline = new Date(Date.parse(new Date()) + <?php echo $_SESSION['secCounter']?>* 60 * 1000);
-initializeClock('clockdiv', deadline);
-
 
 </script>
 

@@ -13,7 +13,8 @@ if (isset($_POST['logout'])) {
 require_once "../config.php";
 
 $question = $_POST['question'];
-$answer = $_POST['answer'];
+$question = str_replace(" ","+", $question);
+$answer = "";
 $test_id = $_SESSION['test_id'];
 $type = "mathFormula";
 

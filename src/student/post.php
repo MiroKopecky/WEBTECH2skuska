@@ -6,7 +6,9 @@ header('Access-Control-Allow-Headers: Access-Control-Allow-Headers,Content-Type,
 include_once "../config.php";
 
 
-// Get raw posted data
+
+$conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
 if( !empty(file_get_contents("php://input")) ){
@@ -17,66 +19,99 @@ if( !empty(file_get_contents("php://input")) ){
     $answers = $data['odpovede'];
 
 
-    foreach($answers as $answer){
-        $conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $sql = 'SELECT * FROM testQuestions WHERE id=?';
-        $stm = $conn->prepare($sql);
-        $stm->bindValue(1,$answer['questionID']);
-        $stm->execute();
-        $question = $stm->fetch(PDO::FETCH_ASSOC);
-        $points = 0;
-        if($answer['type'] == 'typ1'){
-            if($answer['answer'] == $question['answer']){
-                $points = $question['points'];
-            }
-            $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer, points) VALUES (?,?,?,?,?)";
+    //ziskanie casoveho limitu pre test
+    $sql = "SELECT timelimit FROM test WHERE id=$testId";
+    $stm = $conn->query($sql);
+    $testTime = $stm->fetch(PDO::FETCH_ASSOC);
+    $timeLimit = $testTime['timelimit'];
+
+
+    //ziskanie startu pisania
+    $sql = "SELECT start FROM testParticipants WHERE test_id=$testId  AND student_id=$studentId";
+    $stm = $conn->query($sql);
+    $participantTime = $stm->fetch(PDO::FETCH_ASSOC);
+    $timeStart = $participantTime['start'];
+
+
+    $shouldEnd = $timeStart+($timeLimit*60);
+
+
+    $timeNow = date(time());
+
+    if($shouldEnd-$timeNow >= 0){
+        foreach($answers as $answer){
+
+            $sql = 'SELECT * FROM testQuestions WHERE id=?';
             $stm = $conn->prepare($sql);
-            $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer'],$points]);
-
-        }elseif($answer['type'] == 'typ2'){
-            $ans = json_decode($question['answer'],true);
-            $rightAns = $ans[0];
-            if($answer['answer'] == $rightAns){
-                $points = $question['points'];
-            }
-            $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer, points) VALUES (?,?,?,?,?)";
-            $stm = $conn->prepare($sql);
-            $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer'],$points]);
-
-        }elseif($answer['type'] == 'typ3'){
-            $rightAns= json_decode($question['answer'],true);
-            $sutdentAns = $answer['answer'];
-            $sutdentAnsString = json_encode($answer['answer']);
-
-
-            $totalMatches =0;
-            $index=0;
-            foreach($rightAns as $part){
-                if($part[1] == $sutdentAns[$index]){
-                    $totalMatches++;
+            $stm->bindValue(1,$answer['questionID']);
+            $stm->execute();
+            $question = $stm->fetch(PDO::FETCH_ASSOC);
+            $points = 0;
+            if($answer['type'] == 'typ1'){
+                if($answer['answer'] == $question['answer']){
+                    $points = $question['points'];
                 }
-                $index++;
+                $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer, points) VALUES (?,?,?,?,?)";
+                $stm = $conn->prepare($sql);
+                $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer'],$points]);
+
+            }elseif($answer['type'] == 'typ2'){
+                $ans = json_decode($question['answer'],true);
+                $rightAns = $ans[0];
+                if($answer['answer'] == $rightAns){
+                    $points = $question['points'];
+                }
+                $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer, points) VALUES (?,?,?,?,?)";
+                $stm = $conn->prepare($sql);
+                $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer'],$points]);
+
+            }elseif($answer['type'] == 'typ3'){
+                $rightAns= json_decode($question['answer'],true);
+                $sutdentAns = $answer['answer'];
+                $sutdentAnsString = json_encode($answer['answer']);
+
+
+                $totalMatches =0;
+                $index=0;
+                foreach($rightAns as $part){
+                    if($part[1] == $sutdentAns[$index]){
+                        $totalMatches++;
+                    }
+                    $index++;
+                }
+                $points = ($question['points']/$index)*$totalMatches;
+
+                $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer, points) VALUES (?,?,?,?,?)";
+                $stm = $conn->prepare($sql);
+                $stm->execute([$studentId,$answer['questionID'],$testId,$sutdentAnsString,$points]);
+
+
+            }elseif($answer['type'] == 'typ4'){
+                $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer) VALUES (?,?,?,?)";
+                $stm = $conn->prepare($sql);
+                $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer']]);
+
+            }elseif($answer['type'] == 'typ5'){
+                $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer) VALUES (?,?,?,?)";
+                $stm = $conn->prepare($sql);
+                $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer']]);
             }
-            $points = ($question['points']/$index)*$totalMatches;
-
-            $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer, points) VALUES (?,?,?,?,?)";
-            $stm = $conn->prepare($sql);
-            $stm->execute([$studentId,$answer['questionID'],$testId,$sutdentAnsString,$points]);
-
-
-        }elseif($answer['type'] == 'typ4'){
-            $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer) VALUES (?,?,?,?)";
-            $stm = $conn->prepare($sql);
-            $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer']]);
-
-        }elseif($answer['type'] == 'typ5'){
-            $sql = "INSERT INTO studentsAnswerLogs (student_id, testQuestion_id, test_id, answer) VALUES (?,?,?,?)";
-            $stm = $conn->prepare($sql);
-            $stm->execute([$studentId,$answer['questionID'],$testId,$answer['answer']]);
         }
+        $sql = "UPDATE testParticipants SET status='done' WHERE student_id='$studentId' AND test_id='$testId'";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        http_response_code(200);
+
+    }else{
+        http_response_code(403);
+        echo json_encode(
+            array('message' => 'After time limit')
+        );
+
     }
-    http_response_code(200);
+
+
+
 }else{
     http_response_code(503);
     echo json_encode(
