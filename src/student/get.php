@@ -7,9 +7,6 @@ include_once "../config.php";
 
 session_start();
 
-$code = $_SESSION['test_id'];
-
-
 function separate($data){
     $sides = [];
     $left= [];
