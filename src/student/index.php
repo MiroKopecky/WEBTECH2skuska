@@ -52,7 +52,7 @@ if($_SESSION['timeEnd'] ==null){
     //var_dump($_SESSION['secCouter']);
 }
 
-$json = file_get_contents("https://wt79.fei.stuba.sk/skuska/student/get.php?testId=$test_id");
+$json = file_get_contents("https://wt15.fei.stuba.sk/skuska/student/get.php?testId=$test_id");
 
 //var_dump($json);
 
@@ -63,7 +63,7 @@ function makeOpenQ($questions){
     $html = '';
     foreach($questions as $question){
         if($question['type'] == 'typ1'){
-            $html .= '<div class="openQ"><p><b>Otázka:</b>'.$question['question'].'</p><label for="answers'.$question['questionID'].'">Odpoveď:</label><input type="text" name=answers'.$question['questionID'].'></div>';
+            $html .= '<div class="openQ"><p><b>Otázka:</b>'.$question['question'].'</p><label for="answers'.$question['questionID'].'">Odpoveď:</label><input id="'.$question['questionID'].'" type="text" name=answers'.$question['questionID'].'></div>';    
         }
     }
     echo $html;
@@ -137,41 +137,28 @@ function makeDivs($lefts,$rights,$id){
 }
 
 function makePainting($questions){
-    $html = '';
     foreach($questions as $question){
         if($question['type'] == 'typ4'){
-            $html.= '<p class="painting">Otvorte skicar a nakresli obrazok podla zadania a stiahni ho!</p><br>';
-            $id = $question['questionID'];
-            $content = $question['question'];
-
-
-            $html.='<h2>'.$content.'</h2>';
+            ?>
+            <p><?php echo $question["question"] ?></p>
+            <canvas id="canvas<?php echo $question['questionID'] ?>" style=" margin-left: 1%; " ></canvas>
+            <div class="tools1" style="width: 60%;   margin-left: 20%;">
+                <button onclick="canvas<?php echo $question['questionID'] ?>.Restore()" class="btn btn-secondary">Undo</button>
+                <button onclick="canvas<?php echo $question['questionID'] ?>.Clear()" class="btn btn-secondary">Clear</button>
+                <button id="download_canvas<?php echo $question['questionID'] ?>" class="btn btn-secondary" >Download</button>
+                <div onclick="canvas<?php echo $question['questionID'] ?>.change_color(this)" style="background:red" class="stroke-color"></div>
+                <div onclick="canvas<?php echo $question['questionID'] ?>.change_color(this)" style="background:blue" class="stroke-color"></div>
+                <div onclick="canvas<?php echo $question['questionID'] ?>.change_color(this)" style="background:yellow" class="stroke-color"></div>
+                <div onclick="canvas<?php echo $question['questionID'] ?>.change_color(this)" style="background:green" class="stroke-color"></div>
+                <input type="color" oninput="canvas<?php echo $question['questionID'] ?>.stroke_color = this.value" placeholder="Colors">
+                <input type="range" min="1" max="100" value="1" oninput="canvas<?php echo $question['questionID'] ?>.stroke_width = this.value">
+            </div>
+            <script>
+                let canvas<?php echo $question['questionID'] ?> = new Skicar("<?php echo $question['questionID'] ?>");
+            </script>
+            <?php
         }
     }
-
-    echo $html;
-    ?>
-
-    <?php
-    if (isset($_POST['upload'])) {
-
-        $image = $_FILES['image']['name'];
-
-        if ($image ==""){
-            echo "Nevlozil si obrazok";
-        }
-        else {
-            $target = "images/" . basename($image) . $question['questionID'] . ".png";
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
-                $msg = "Image uploaded successfully";
-            } else {
-                $msg = "Failed to upload image";
-            }
-            $url = "images/" . basename($image) . $question['questionID'] . ".png";
-            echo "<img width='50%' height='50%' src='" . $url . "' >";
-        }
-    }
-
 }
 
 ?>
@@ -273,6 +260,101 @@ function makePainting($questions){
         <?php
         generateScript($questions);
         ?>
+
+skicarOdpovede = {};
+kratkeOdpovede = {};
+class Skicar{
+    constructor(qID){
+        this.qID = qID;
+        this.canvasID = "canvas" + this.qID;
+        this.canvas = document.getElementById(this.canvasID);
+        this.canvas.width = window.innerWidth - 60;
+        this.canvas.height = window.innerHeight * 0.6;
+        this.context = this.canvas.getContext("2d");
+        this.context.fillStyle = "white";
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.restore_array = [];
+        this.start_index = -1;
+        this.stroke_color = 'black';
+        this.stroke_width = "2";
+        this.is_drawing = false;
+        this.canvas.addEventListener("touchstart", function(e){this.start(e)}.bind(this), false);
+        this.canvas.addEventListener("touchmove", function(e){this.draw(e)}.bind(this), false);
+        this.canvas.addEventListener("touchend", function(e){this.stop(e)}.bind(this), false);
+        this.canvas.addEventListener("mousedown", function(e){this.start(e)}.bind(this), false);
+        this.canvas.addEventListener("mousemove", function(e){this.draw(e)}.bind(this), false);
+        this.canvas.addEventListener("mouseup", function(e){this.stop(e)}.bind(this), false);
+        this.canvas.addEventListener("mouseout", function(e){this.stop(e)}.bind(this), false);
+        const download = document.getElementById(`download_${this.canvasID}`);
+        download.addEventListener('click', function(e) {
+            console.log(skicarOdpovede[this.qID]);
+        }.bind(this));
+    }
+    change_color(element) {
+        this.stroke_color = element.style.background;
+    }
+    change_width(element) {
+        this.stroke_width = element.innerHTML;
+    }
+    start(event) {
+        this.is_drawing = true;
+        this.context.beginPath();
+        this.context.moveTo(this.getX(event), this.getY(event));
+        event.preventDefault();
+    }
+    draw(event) {
+        if (this.is_drawing) {
+            this.context.lineTo(this.getX(event), this.getY(event));
+            this.context.strokeStyle = this.stroke_color;
+            this.context.lineWidth = this.stroke_width;
+            this.context.lineCap = "round";
+            this.context.lineJoin = "round";
+            this.context.stroke();
+        }
+        event.preventDefault();
+    }
+    stop(event) {
+        if (this.is_drawing) {
+            this.context.stroke();
+            this.context.closePath();
+            this.is_drawing = false;
+        }
+        event.preventDefault();
+        this.restore_array.push(this.context.getImageData(0, 0, this.canvas.width, this.canvas.height));
+        this.start_index += 1;
+        skicarOdpovede[this.qID] = document.getElementById(this.canvasID).toDataURL();
+    }
+    getX(event) {
+        if (event.pageX == undefined) {return event.targetTouches[0].pageX - this.canvas.offsetLeft}
+        else {return event.pageX - this.canvas.offsetLeft}
+    }
+    getY(event) {
+        if (event.pageY == undefined) {return event.targetTouches[0].pageY - this.canvas.offsetTop}
+        else {return event.pageY - this.canvas.offsetTop}
+    }
+    Restore() {
+        if (this.start_index <= 0) {
+            this.Clear()
+        } else {
+            this.start_index += -1;
+            this.restore_array.pop();
+            if ( event.type != 'mouseout' ) {
+                this.context.putImageData(this.restore_array[this.start_index], 0, 0);
+            }
+        }
+        skicarOdpovede[this.qID] = document.getElementById(this.canvasID).toDataURL();
+    }
+    Clear() {
+        this.context.fillStyle = "white";
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.restore_array = [];
+        this.start_index = -1;
+        skicarOdpovede[this.qID] = document.getElementById(this.canvasID).toDataURL();
+    }
+}
+
+
     </script>
 </head>
 
@@ -315,6 +397,11 @@ makePainting($questions);
 
 
 <script>
+
+    $(".openQ input").change(function(){
+        kratkeOdpovede[this.id] = this.value;
+    })
+
     /*Script ku párovacej otzáke- Dano  */
     function getChildElement(element, index) {
         var elementCount = 0;
@@ -356,7 +443,8 @@ makePainting($questions);
 
     //typ5
     var mathId = function() {
-        return document.querySelector('.mathAnswer').id;
+        if(document.querySelector('.mathAnswer') != null)
+            return document.querySelector('.mathAnswer').id;
     };
 
     function pairing(id) {
@@ -395,6 +483,14 @@ makePainting($questions);
             for(var i = 0; i < ids.length; i++){
                 data.push(pairing(ids[i]));
             }
+
+            for(key in kratkeOdpovede){
+                data.push({type:"typ1",questionID:key,answer:kratkeOdpovede[key]});
+            }
+            for(key in skicarOdpovede){
+                data.push({type:"typ4",questionID:key,answer:skicarOdpovede[key]});
+            }
+
             data.push(math(mathId(),enteredMath));
 
             json['metaData'] = metadata;
@@ -404,7 +500,7 @@ makePainting($questions);
             console.log(json);
 
             $.ajax({
-                url: 'https://wt79.fei.stuba.sk/skuska/student/post.php',
+                url: 'https://wt15.fei.stuba.sk/skuska/student/post.php',
                 type: 'post',
                 data: json,
                 success: function(response){
