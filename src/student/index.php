@@ -80,7 +80,7 @@ function makeSelect($questions){
             sort($answers);
             echo "
                 <p class='h3 mb-3'>Vyber správnu odpoveď: </p>
-                <div class='p-3' id='$id' class='answer_select'>
+                <div id='$id' class='answer_select p-3'>
                 <label for='answer_select'>". $question['question']['textOtazky'] ."</label>
                 <select id='answer_select' name='answer_select'>";
             foreach ($answers as $answer) {
@@ -141,7 +141,7 @@ function makePainting($questions){
         if($question['type'] == 'typ4'){
             ?>
             <p class="h3"><?php echo $question["question"] ?></p>
-            <canvas id="canvas<?php echo $question['questionID'] ?>" style=" margin-left: 1%; " ></canvas>
+            <canvas id="canvas<?php echo $question['questionID'] ?>" style=" margin-left: 1%; border: solid black 1px" ></canvas>
             <div class="tools" class="text-center">
                 <button onclick="canvas<?php echo $question['questionID'] ?>.Restore()" class="btn btn-secondary">Undo</button>
                 <button onclick="canvas<?php echo $question['questionID'] ?>.Clear()" class="btn btn-secondary">Clear</button>
@@ -199,10 +199,9 @@ function makePainting($questions){
         }
 
         .column {
-            width: 30%;
+            width: 44%;
             min-height: 20px;
             list-style-type: none;
-            margin-left: 10%;
             float: left;
             margin-right: 10px;
         }
@@ -210,6 +209,7 @@ function makePainting($questions){
         .column li {
             padding: 25px;
             padding-bottom: 50px;
+            padding-right: 450px;
             font-size: 1em;
             height: 18px;
             margin: 3px;
@@ -402,7 +402,7 @@ makePainting($questions);
     <!--****************************************************************MATEMATICKA-->
     <p class="h2">Vypočítaj príklad:</p>
 
-    <div id="mathDiv">
+    <div id="mathDiv" style="margin: 20px; font-size: 25px;">
         <div id="mathQ"></div><br>
     </div>
 
