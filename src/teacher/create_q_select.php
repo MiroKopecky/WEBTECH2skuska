@@ -51,10 +51,11 @@ if (isset($_POST['question'])) {
 <html>
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
 </head>
-<body>
-<button class="btn add-answer">Pridaj odpoveď</button>
-<form action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
+<body class="container bg-dark text-white pt-5">
+<button class="btn btn-primary mb-5 add-answer">Pridať nesprávnu odpoveď</button>
+<form class="form" action="<?php $_SERVER['PHP_SELF'] ?>" method="post">
     <label for="question">Zadaj otázku: </label><br>
     <input type="text" size="50" name="question" id="question" required>
     <label for="points">Počet bodov: </label>
@@ -70,7 +71,7 @@ if (isset($_POST['question'])) {
             <input type="text" name="answer[]" required/>
         </div>
     </div>
-    <input type="submit" id="submit" value="Submit" />
+    <input class="btn btn-primary mt-5" type="submit" id="submit" value="Submit" />
 </form>
 
 <script type="text/javascript">
@@ -86,7 +87,7 @@ if (isset($_POST['question'])) {
                 $('.answers').append(`
                     <div>
                       <input type="text" name="answer[]" required/>
-                      <a href="#" class="remove-answer">Odstráň odpoveď</a>
+                      <a href="#" class="remove-answer text-danger">Odstráň odpoveď</a>
                     </div>
                 `);
             }
