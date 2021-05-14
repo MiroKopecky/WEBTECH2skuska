@@ -30,8 +30,8 @@ if (isset($_POST['logout'])) {
 
     </style>
 </head>
-<body>
-<div class="container pt-5 bg-dark text-white mt-4">
+<body class="p-5 bg-dark text-white">
+<div>
     <h1>Hlavna stranka ucitela</h1>
 
     <input class="btn btn-primary" type="button" onclick="location.href='./teacher/create_test.php';" value="Vytvoriť test" />
