@@ -27,16 +27,24 @@ $_SESSION['test_id'] = $test_id;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
     <title>Matematicka otazka</title>
+
+    <style>
+        span {
+            caret-color: white;
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-dark text-white container">
 
 <p id="note"></p>
 
-Zadaj priklad: <br><br><span id="answer">x=</span><br><br>
+<h1 class="h1 mt-5">Zadaj priklad:</h1> <br><br><span class="ml-5 p-5" style="font-size: 50px;" id="answer">x=</span><br><br>
 
-<button id="send">Odoslat</button><br><br>
+<button class="btn btn-primary ml-5" id="send">Odoslat</button><br><br>
 
 
 <script>
