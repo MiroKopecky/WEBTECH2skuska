@@ -257,8 +257,8 @@ else if (isset($_POST['student'])) {
 
     document.getElementById("student_login").style.display = "none";
 
-    let student = "<?php echo $_POST['student'];?>";
-    let teacher = "<?php echo $_POST['ucitel'];?>";
+    let student = "<?php if(isset($_POST['student'])) echo $_POST['student'];?>";
+    let teacher = "<?php if(isset($_POST['ucitel'])) echo $_POST['ucitel'];?>";
     if (student != "") {
         switch_role_student();
     }
