@@ -59,10 +59,12 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
         body {
             font-family: arial;
             padding-left: 10px;
+            background-color: #343a40;
+            color: white;
         }
 
         .input-box {
-            margin: 15px 0;
+            margin: 30px 0;
         }
 
         .input-box input {
@@ -97,6 +99,10 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
             text-decoration: none;
         }
 
+        .input-box input{
+            width: 500px;
+        }
+
         .input-box a:hover {
             text-decoration: underline;
         }
@@ -107,12 +113,17 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
         .info{
             margin-left: 25%;
         }
+
+        label {
+            margin-left: 25%;
+        }
+
     </style>
 </head>
 
 <body>
 
-<button class="btn add-btn">Add More</button>
+<button class="btn add-btn" style="margin-top: 25px;">Add More</button>
 <small>Stalačením pridáte input pre dvojicu</small>
 <div class="info">
     <p><strong>MAX počet dvojíc 10</strong> </p>
@@ -121,8 +132,8 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
 <form action="" method="post">
     <div class="wrapper">
         <div class="input-box">
-            <input type="text" size="120" name="input_name[] " required/>
-            <input type="text" size="120" name="input_name[]" required/>
+            <input type="text" maxlength="50" name="input_name[] " required/>
+            <input type="text" maxlength="50" name="input_name[]" required/>
         </div>
     </div>
     <label for="points">Počet bodov: </label>
@@ -146,8 +157,8 @@ if (isset($_POST["input_name"]) && is_array($_POST["input_name"])){
                 x++; // increment the counter
                 $('.wrapper').append(`
             <div class="input-box">
-              <input type="text" size="120" name="input_name[] " required/>
-              <input type="text" size="120" name="input_name[]" required/>
+              <input type="text" maxlength="50" name="input_name[] " required/>
+              <input type="text" maxlength="50" name="input_name[]" required/>
               <a href="#" class="remove-lnk">Remove</a>
             </div>
           `); // add input field
